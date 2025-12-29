@@ -5,7 +5,10 @@ class Device {
         std::string name;
 
     public:
-        Device(std::string name) : name(std::move(name)) {}
+        Device(std::string name) : name(std::move(name)) {
+            std::cout << std::endl;
+            std::cout << "Constructor called: Device" << std::endl;
+        }
 
         const std::string& getName() const { return name; }
 
@@ -16,8 +19,11 @@ class Device {
 
         // Virtueller Destructor. Grund: Wenn ein Objekt aus einer child class über einen base class
         // Pointer gelöscht wird sichergestellt das desctructor in child UND base class aufgerufen wird
+        // Ohne: Undefiniertes Verhalten
+        // Solte bei virtuellen Funktionen immer verwendet werden
         virtual ~Device() {
-            std::cout << "Device destructor called." << std::endl;
+            std::cout << "Destructor called: Device" << std::endl;
+            std::cout << std::endl;
         }
 };
 
@@ -26,7 +32,9 @@ class Computer : virtual public Device { // virtual takes reference base, no cop
         int ramGB;
 
     public:
-        Computer(std::string name, int ramGB) : Device(std::move(name)), ramGB(std::move(ramGB)) {}
+        Computer(std::string name, int ramGB) : Device(std::move(name)), ramGB(std::move(ramGB)) {
+            std::cout << "Constructor called: Computer" << std::endl;
+        }
         // base classe always 1st in initiator list
 
         const int& getRamGB() const { return ramGB; }
@@ -36,7 +44,7 @@ class Computer : virtual public Device { // virtual takes reference base, no cop
         }
 
         ~Computer() {
-            std::cout << "Computer destructor called." << std::endl;
+            std::cout << "Destructor called: Computer." << std::endl;
         }
 };
 
@@ -45,7 +53,9 @@ class Smartphone : virtual public Device { // virtual takes reference base, no c
         bool has5G;
     
     public:
-        Smartphone(std::string name, bool has5G) : Device(std::move(name)), has5G(std::move(has5G)) {}
+        Smartphone(std::string name, bool has5G) : Device(std::move(name)), has5G(std::move(has5G)) {
+            std::cout << "Constructor called: Smartphone" << std::endl;
+        }
 
         const bool& getHas5G() const { return has5G; }
 
@@ -54,7 +64,7 @@ class Smartphone : virtual public Device { // virtual takes reference base, no c
         }
 
         ~Smartphone() {
-            std::cout << "Smartphone destructor called." << std::endl;
+            std::cout << "Destructor called: Smartphone" << std::endl;
         }
 };
 
@@ -64,7 +74,9 @@ class SmartComputer : public Computer, public Smartphone {
 
     public:
         SmartComputer(std::string name, int ramGB, bool has5G, bool touchscreen) :
-        Device(std::move(name)), Computer(std::move(name), std::move(ramGB)), Smartphone(std::move(name), std::move(has5G)), touchscreen(std::move(touchscreen)) {}
+        Device(std::move(name)), Computer(std::move(name), std::move(ramGB)), Smartphone(std::move(name), std::move(has5G)), touchscreen(std::move(touchscreen)) {
+            std::cout << "Constructor called: Smartcomputer" << std::endl;
+        }
 
         const bool& getTouchscreen() const { return touchscreen; }
 
@@ -74,7 +86,7 @@ class SmartComputer : public Computer, public Smartphone {
         }
 
         ~SmartComputer() {
-            std::cout << "SmartComputer destructor called." << std::endl;
+            std::cout << "Destructor called: SmartComputer" << std::endl;
         }
 
 };
@@ -95,9 +107,18 @@ int main() {
     SmartComputer sc("surface", 4, false, true);
     sc.printInfo();
 
-    std::cout << std::endl;
+    std::cout << "------------------------------------------------------------------------" << std::endl;
+
+    Device* scPtr;
+    scPtr = &sc;
+    scPtr->printInfo();
+
+    std::cout << sc.getRamGB() << std::endl;
+
+    std::cout << "------------------------------------------------------------------------" << std::endl;
 
     return 0;
 }
 
 // Within class methods: Use attribute directly or via getter?
+// -> Answer: Directly!
