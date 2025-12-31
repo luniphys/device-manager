@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 class Device {
     private:
@@ -6,7 +7,6 @@ class Device {
 
     public:
         Device(std::string name) : name(std::move(name)) {
-            std::cout << std::endl;
             std::cout << "Constructor called: Device" << std::endl;
         }
 
@@ -18,16 +18,15 @@ class Device {
         }
 
         // Virtueller Destructor. Grund: Wenn ein Objekt aus einer child class über einen base class
-        // Pointer gelöscht wird sichergestellt das desctructor in child UND base class aufgerufen wird
+        // Pointer gelöscht wird, wird sichergestellt das desctructor in child UND base class aufgerufen wird
         // Ohne: Undefiniertes Verhalten
         // Solte bei virtuellen Funktionen immer verwendet werden
         virtual ~Device() {
             std::cout << "Destructor called: Device" << std::endl;
-            std::cout << std::endl;
         }
 };
 
-class Computer : virtual public Device { // virtual takes reference base, no copy
+class Computer : virtual public Device { // virtual takes reference of parent, no copy
     private:
         int ramGB;
 
@@ -39,6 +38,7 @@ class Computer : virtual public Device { // virtual takes reference base, no cop
 
         const int& getRamGB() const { return ramGB; }
 
+        // override needed since base class function is virtual
         void printInfo() override {
             std::cout << "Computer Name: " << getName() << ", Ram: " << ramGB << " GB" << std::endl;
         }
@@ -48,7 +48,7 @@ class Computer : virtual public Device { // virtual takes reference base, no cop
         }
 };
 
-class Smartphone : virtual public Device { // virtual takes reference base, no copy
+class Smartphone : virtual public Device { // virtual takes reference of parent, no copy
     private:
         bool has5G;
     
@@ -95,27 +95,45 @@ class SmartComputer : public Computer, public Smartphone {
 
 int main() {
 
-    Device dvc("iphone");
-    dvc.printInfo();
+    std::cout << "------------------------------------------------------------------------\nUpcasting:\n" << std::endl;
 
-    Computer pc("hp", 8);
-    pc.printInfo();
+    SmartComputer* sc = new SmartComputer("Surface", 4, false, true);
 
-    Smartphone sp("galaxy", true);
-    sp.printInfo();
-
-    SmartComputer sc("surface", 4, false, true);
-    sc.printInfo();
-
-    std::cout << "------------------------------------------------------------------------" << std::endl;
-
-    Device* scPtr;
-    scPtr = &sc;
+    Device* scPtr = sc;
+    std::cout << std::endl;
     scPtr->printInfo();
 
-    std::cout << sc.getRamGB() << std::endl;
+    std::cout << "------------------------------------------------------------------------\nDowncasting:\n" << std::endl;
+
+    SmartComputer* sc_dyn = dynamic_cast<SmartComputer*>(scPtr);
+    if (sc_dyn != nullptr) {
+        std::cout << "Has Touchscreen: " << sc_dyn->getTouchscreen() << std::endl;
+    }
+    // dynamic_cast ändert nicht den Objekt Typ, sondern checkt nur Objekt in dynamischen Speicher  
+    // scPtr->getTouchscreen() would fail since Compiler sees scPtr as type Device* which has no touchscreen attribute
+    
+    std::cout << "------------------------------------------------------------------------\nPolymorphismus:\n" << std::endl;
+
+    Computer* pc = new Computer("HP", 8);
+    Smartphone* sp = new Smartphone("Galaxy", true);
+
+    std::vector<Device*> devices;
+    devices.push_back(pc);
+    devices.push_back(sp);
+    devices.push_back(sc);
+
+    std::cout << std::endl;
+
+    for (Device* dvs : devices) {
+        dvs->printInfo();
+    }
 
     std::cout << "------------------------------------------------------------------------" << std::endl;
+
+    delete sc;
+    delete pc;
+    delete sp;
+
 
     return 0;
 }
