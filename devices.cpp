@@ -26,44 +26,46 @@ class Device {
         }
 };
 
-class Computer : virtual public Device { // virtual takes reference of parent, no copy
+class Computer : virtual public Device { // virtual takes reference of parent, no copy -> Diamond inheritance
     private:
         int ramGB;
-
+ 
     public:
-        Computer(std::string name, int ramGB) : Device(std::move(name)), ramGB(std::move(ramGB)) {
+        // std::move not for primitive types
+        // base classe always 1st in initiator list
+        Computer(std::string name, int ramGB) : Device(std::move(name)), ramGB(ramGB) {
             std::cout << "Constructor called: Computer" << std::endl;
         }
-        // base classe always 1st in initiator list
 
-        const int& getRamGB() const { return ramGB; }
-
+        // no const& for primitive types (for return type)
+        int getRamGB() const { return ramGB; }
+        
         // override needed since base class function is virtual
         void printInfo() override {
             std::cout << "Computer Name: " << getName() << ", Ram: " << ramGB << " GB" << std::endl;
         }
 
-        ~Computer() {
+        ~Computer() override {
             std::cout << "Destructor called: Computer." << std::endl;
         }
 };
 
-class Smartphone : virtual public Device { // virtual takes reference of parent, no copy
+class Smartphone : virtual public Device { // virtual takes reference of parent, no copy -> Diamond inheritance
     private:
         bool has5G;
     
     public:
-        Smartphone(std::string name, bool has5G) : Device(std::move(name)), has5G(std::move(has5G)) {
+        Smartphone(std::string name, bool has5G) : Device(std::move(name)), has5G(has5G) {
             std::cout << "Constructor called: Smartphone" << std::endl;
         }
 
-        const bool& getHas5G() const { return has5G; }
+        bool getHas5G() const { return has5G; }
 
         void printInfo() override {
             std::cout << "Smartphone Name: " << getName() << ", 5G: " << has5G << std::endl;
         }
 
-        ~Smartphone() {
+        ~Smartphone() override {
             std::cout << "Destructor called: Smartphone" << std::endl;
         }
 };
@@ -73,19 +75,21 @@ class SmartComputer : public Computer, public Smartphone {
         bool touchscreen;
 
     public:
+        // "Die virtuelle Basisklasse wird effektiv nur vom am weitesten abgeleiteten Konstruktor initialisiert."
+        // -> Smartphone kreiert hier Device. Die Device Konstruktoren in Computer & Smartphone werden hier ignoriert.
         SmartComputer(std::string name, int ramGB, bool has5G, bool touchscreen) :
-        Device(std::move(name)), Computer(std::move(name), std::move(ramGB)), Smartphone(std::move(name), std::move(has5G)), touchscreen(std::move(touchscreen)) {
+        Device(std::move(name)), Computer(name, ramGB), Smartphone(name, has5G), touchscreen(touchscreen) {
             std::cout << "Constructor called: Smartcomputer" << std::endl;
         }
 
-        const bool& getTouchscreen() const { return touchscreen; }
+        bool getTouchscreen() const { return touchscreen; }
 
         void printInfo() override {
             std::cout << "SmartComputer Name: " << getName() << ", Ram: " << getRamGB() << " GB, 5G: "
             << getHas5G() << ", Touchscreen: " << touchscreen << std::endl;
         }
 
-        ~SmartComputer() {
+        ~SmartComputer() override {
             std::cout << "Destructor called: SmartComputer" << std::endl;
         }
 
@@ -99,18 +103,19 @@ int main() {
 
     SmartComputer* sc = new SmartComputer("Surface", 4, false, true);
 
-    Device* scPtr = sc;
+    Device* scDvc = sc;
     std::cout << std::endl;
-    scPtr->printInfo();
+    scDvc->printInfo();
 
     std::cout << "------------------------------------------------------------------------\nDowncasting:\n" << std::endl;
 
-    SmartComputer* sc_dyn = dynamic_cast<SmartComputer*>(scPtr);
+    // dynamic_cast does not change object type, it only checks what object is in dynamic memory  
+    // scDvc->getTouchscreen() would fail since Compiler sees scDvc as type Device* which has no touchscreen attribute
+    
+    SmartComputer* sc_dyn = dynamic_cast<SmartComputer*>(scDvc);
     if (sc_dyn != nullptr) {
         std::cout << "Has Touchscreen: " << sc_dyn->getTouchscreen() << std::endl;
     }
-    // dynamic_cast ändert nicht den Objekt Typ, sondern checkt nur Objekt in dynamischen Speicher  
-    // scPtr->getTouchscreen() would fail since Compiler sees scPtr as type Device* which has no touchscreen attribute
     
     std::cout << "------------------------------------------------------------------------\nPolymorphismus:\n" << std::endl;
 
@@ -137,6 +142,3 @@ int main() {
 
     return 0;
 }
-
-// Within class methods: Use attribute directly or via getter?
-// -> Answer: Directly!
