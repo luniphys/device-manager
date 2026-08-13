@@ -3,14 +3,14 @@
 
 # Device Manager
 
-A small C++ learning project about managing electronic devices using object-oriented programming.
+A small C++ study project about managing electronic devices using object-oriented programming.
 
 This project was created as a learning task to practice core C++ OOP concepts:
 
-- polymorphism
-- upcasting and downcasting
-- diamond inheritance
-- virtual functions and virtual destructors
+- Polymorphism
+- Upcasting and downcasting
+- Diamond inheritance
+- Virtual functions and virtual destructors
 
 ## Overview
 
@@ -21,7 +21,7 @@ The program models different kinds of devices through inheritance:
 - `Smartphone` derived from `Device`
 - `SmartComputer` derived from `Computer` and `Smartphone`
 
-## Class Diagram
+### Class Diagram
 
 ```text
           Device
@@ -31,8 +31,6 @@ The program models different kinds of devices through inheritance:
        SmartComputer
 ```
 
-With virtual inheritance:
-- `Computer : virtual public Device`
-- `Smartphone : virtual public Device`
+## License
 
-This prevents `SmartComputer` from containing two separate `Device` base objects.
+MIT © [luniphy](https://github.com/luniphy)
